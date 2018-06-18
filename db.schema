@@ -1,0 +1,8 @@
+BEGIN;
+CREATE TABLE "municipios"(
+	"cod_tse" Integer NOT NULL PRIMARY KEY,
+	"nome" Text NOT NULL,
+	"uf" Text NOT NULL, CONSTRAINT "unique_cod_tse" UNIQUE ( "cod_tse" ) ) WITHOUT ROWID;
+    
+CREATE INDEX "index_uf" ON "municipios"( "uf" );
+COMMIT;

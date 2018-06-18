@@ -9,11 +9,19 @@ import datetime
 import dadosAbertos
 from downloadData import Main as downloadData
 from extractData import Main as extractData
-from parseMunicipios import Main as parseMunicipios
-from parseZonasEleitorais import Main as parseZonas
+from parsePerfilEleitorado import Main as parsePerfilEleitorado
 
-def connect():
-    print("Conectado!")
+def connect(fileoutput):
+
+    conn = sqlite3.connect(fileoutput)
+    with open('db.schema', 'r') as schema:
+        statements = schema.read()
+        cursor = conn.cursor()
+        for statement in statements:
+            cursor.execute(statement)
+
+    conn.commit()
+    return conn
 
 def insertMunicipios():
     print("Inserindo Municípios...")
@@ -23,22 +31,16 @@ def insertZonas():
 
 def Main(fileMap, fileoutput, limit):
     
-    eleitores = fileMap[dadosAbertos.kPerfilEleitores()]
-    #votacao = fileMap[kVotacaoCandidatos]
+    print("Extraindo dados do Perfil de Eleitores")
+    outputDir = 'parsed_' + str(datetime.datetime.now())
+    parsePerfilEleitorado(fileMap, outputDir, limit)
 
-    uniqueName = random.randint(1, 999999)
-    fileMunicipios = str(uniqueName).zfill(6) + kMunicipios + ".tmp"
-    fileZonas = str(uniqueName).zfill(6) + kZonasEleitorais + ".tmp"
-
-    parseMunicipios(eleitores, fileMunicipios, limit)
-    parseZonas(eleitores, fileZonas, limit)
-
-    connect()
+    connect(fileoutput)
     insertMunicipios()
     insertZonas()
 
-    os.remove(fileMunicipios)
-    os.remove(fileZonas)
+    #os.remove(fileMunicipios)
+    #os.remove(fileZonas)
 
     print("Done!")
 
@@ -78,7 +80,7 @@ def parseArgs():
     parser.add_argument("-d", "--download", help="Mapa com a localização dos Arquivos para Download")
     parser.add_argument("-m", "--filemap", help="Mapa com a localização dos Arquivos de Dados")
     parser.add_argument("-f", "--filter", help="Nome do Arquivo com os critérios de filtro")
-    parser.add_argument("-o", "--output", help="Nome do Arquivo de Destino")
+    parser.add_argument("-o", "--output", help="Nome do Arquivo/Diretório de Destino")
     parser.add_argument("--generateMap", help="Cria o esqueleto para o mapa de Localização dos Arquivos de Dados", action="store_true")
     parser.add_argument("--generateFilterMap", help="Cria o esqueleto para os Filtros dos Arquivos de Dados", action="store_true")
     parser.add_argument("-l", "--limit", help="Limitar número de linhas a serem processadas")
@@ -118,22 +120,21 @@ if __name__ == '__main__':
         downloadFile = args.download
         limit = 0 if args.limit == None else int(args.limit)
 
+        if inputFile == None and downloadFile == None:
+            print("Você deve informar um Arquivo com as urls para download ou um Mapa com a localização dos arquivos já baixados!")
+
         if inputFile != None:
             map = getFileMap(inputFile)
             Main(map, outputFile, limit)
-        
+
         if downloadFile != None:
-            #downloadDict = getFileMap(downloadFile)
-            #map = downloadData(downloadDict, 'downloaded')
-            map = getFileMap('downloadManifest.map')
+            downloadDict = getFileMap(downloadFile)
+            map = downloadData(downloadDict, 'downloaded')
 
             allExtracted = dict()
             for key, value in map.items():
-                dirname = key + str(datetime.date.today())
+                dirname = os.path.join('extracted', key, str(datetime.date.today()))
                 extractedFiles = extractData(value, dirname)
                 allExtracted[key] = extractedFiles
 
-            with open(outputFile, 'w', newline = '', encoding = "utf-8") as file:
-                file.write(str(allExtracted))
-
-            #Main(map, outputFile, limit)
+            Main(allExtracted, outputFile, limit)

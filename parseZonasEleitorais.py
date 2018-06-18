@@ -3,24 +3,22 @@ import os.path
 import csv
 import argparse
 
-idxMunicipio = 4
-idxZona = 6
-idxSecao = 7
-idxQtd = 16
+idxMunicipio = 3
+idxZona = 4
+idxQtd = 8
 
 controlVerbose = False
 
 dictSecoes = dict()
 notProcessedLines = list()
 
-def extractSecao(line):
+def extractZona(line):
 
     municipio = line[idxMunicipio]
     zona = line[idxZona]
-    secao = line[idxSecao]
     qtd = int(line[idxQtd])
 
-    key = (municipio, zona, secao)
+    key = (municipio, zona)
     if key in dictSecoes:
         dictSecoes[key] += qtd
     else:
@@ -31,7 +29,7 @@ def processLine(line, linenumber):
     global controlVerbose
 
     if type(line) is list and len(line) > idxQtd:
-        extractSecao(line)
+        extractZona(line)
     else:
         notProcessedLines.append((linenumber, line))
         if controlVerbose:
@@ -74,7 +72,13 @@ def readInput(filename, limit):
 def writeOutput(filename):
     
     if filename != None:
-        with open(filename, 'w', newline = '', encoding = "utf-8") as file:
+
+        if os.path.exists(filename):
+            writeMode = 'a' # append
+        else:
+            writeMode = 'w' # make a new file
+
+        with open(filename, writeMode, newline = '', encoding = "utf-8") as file:
             if controlVerbose:
                 print("Abrindo Arquivo de saída {}...".format(filename))
 
@@ -83,7 +87,6 @@ def writeOutput(filename):
                 row = list()
                 row.append(key[0])
                 row.append(key[1])
-                row.append(key[2])
                 row.append(value)
                 writer.writerow(row)
     else:
@@ -92,7 +95,6 @@ def writeOutput(filename):
             row = list()
             row.append(key[0])
             row.append(key[1])
-            row.append(key[2])
             row.append(value)
             writer.writerow(row)
 
@@ -111,7 +113,7 @@ def Main(fileinput, fileoutput, limit):
     writeOutput(fileoutput)
 
     if controlVerbose:
-        print("Procedimento encerrado, {} linhas escritas".format(len(dictSecoes)))
+        print(os.path.basename(__file__) + "Procedimento encerrado, {} linhas escritas".format(len(dictSecoes)))
         
 
 def parseArgs():

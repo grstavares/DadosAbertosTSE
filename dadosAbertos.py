@@ -1,5 +1,5 @@
 def kPerfilEleitores():
-    return 'perfilEleitores'
+    return 'perfilEleitorado'
 
 def kVotacaoCandidatos():
     return 'votacaoCandidatos'

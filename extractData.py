@@ -24,14 +24,14 @@ def Main(inputFile, outputDir):
         count = 0
         file = zipfile.ZipFile(f)
         for name in file.namelist():
-            count += 1
-            extractedPath = os.path.join(outputDir, name)
-            extractedFiles.append(extractedPath)
-            file.extract(name,outputDir)
+            if '.txt' in name:
+                count += 1
+                extractedPath = os.path.join(outputDir, name)
+                extractedFiles.append(extractedPath)
+                file.extract(name,outputDir)
 
         print('{} arquivos extraídos'.format(count))
         return extractedFiles
-
 
 def parseArgs():
     

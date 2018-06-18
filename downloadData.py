@@ -41,7 +41,6 @@ def download(filename, url):
     else:
         urllib.request.urlretrieve(url, filename=filename)
 
-
 def getFileMap(inputFile):
     
     with open(inputFile, 'r') as file:

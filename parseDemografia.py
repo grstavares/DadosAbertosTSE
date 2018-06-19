@@ -19,9 +19,9 @@ def extractZona(line):
 
     municipio = line[idxMunicipio]
     zona = line[idxZona]
-    sexo = line[idxSexo]
-    faixa = line[idxFaixaEtaria]
-    escolaridade = line[idxEscolaridade]
+    sexo = line[idxSexo].replace("'", "`")
+    faixa = line[idxFaixaEtaria].replace("'", "`")
+    escolaridade = line[idxEscolaridade].replace("'", "`")
     qtd = int(line[idxQtd])
 
     key = (municipio, zona, sexo, faixa, escolaridade)

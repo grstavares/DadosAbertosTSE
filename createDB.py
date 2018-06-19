@@ -1,33 +1,131 @@
 import os
 import sys
 import ast
+import csv
 import random
 import argparse
 import sqlite3
 import datetime
 
 import dadosAbertos
+import database
+import utils
 from downloadData import Main as downloadData
 from extractData import Main as extractData
 from parsePerfilEleitorado import Main as parsePerfilEleitorado
 
-def connect(fileoutput):
+def insertMunicipios(db, outputDir):
 
-    conn = sqlite3.connect(fileoutput)
-    with open('db.schema', 'r') as schema:
-        statements = schema.read()
-        cursor = conn.cursor()
-        for statement in statements:
-            cursor.execute(statement)
+    filename = os.path.join(outputDir, 'municipios.txt')
+    with open(filename, 'r', encoding='utf-8') as file:
+        
+        reader = csv.reader(file, delimiter=';')
+        counter = 0
+        for row in reader:
+            cod = row[0]
+            uf = row[1]
+            nome = row[2]
 
-    conn.commit()
-    return conn
+            statement = "INSERT INTO municipios (cod_tse, uf, nome) VALUES ({}, '{}', '{}');".format(cod, uf, nome)
+            db.execute(statement)
+            counter += 1
+            if counter % 100 == 0:
+                statement = 'COMMIT;'
+                db.execute(statement)
 
-def insertMunicipios():
-    print("Inserindo Municípios...")
+    statement = 'COMMIT;'
+    db.execute(statement)
+    print("{} municípios inseridos!".format(counter))
 
-def insertZonas():
-    print("Inserindo Zonas...")
+def insertZonas(db, outputDir):
+
+    filename = os.path.join(outputDir, 'zonasEleitorais.txt')
+    with open(filename, 'r', encoding='utf-8') as file:
+        
+        reader = csv.reader(file, delimiter=';')
+        counter = 0
+        for row in reader:
+            mun = row[0]
+            zon = row[1]
+            qtd = row[2]
+
+            statement = "INSERT INTO zonasEleitorais (cod_municipio, num_zona, qtd_eleitores) VALUES ({}, {}, {});".format(mun, zon, qtd)
+            db.execute(statement)
+            counter += 1
+            if counter % 100 == 0:
+                statement = 'COMMIT;'
+                db.execute(statement)
+
+    statement = 'COMMIT;'
+    db.execute(statement)
+    print("{} Zonas Eleitorais inseridas!".format(counter))
+
+def insertDemografia(db, outputDir):
+
+    dictSex = dict()
+    dictIda = dict()
+    dictEsc = dict()
+
+    filename = os.path.join(outputDir, 'DadosDemograficos.txt')
+    with open(filename, 'r', encoding='utf-8') as file:
+        
+        reader = csv.reader(file, delimiter=';')
+        counter = 0
+        idCounter = 50
+        needcommit = False
+
+        for row in reader:
+            mun = row[0]
+            zon = row[1]
+            sex = row[2]
+            ida = row[3]
+            esc = row[4]
+            qtd = row[5]
+
+            if sex not in dictSex.keys():
+                idCounter += 5
+                idSex = idCounter
+                dictSex[sex] = idSex
+                statement = "INSERT INTO enumSexo (id, desc) VALUES ({}, '{}');".format(idSex, sex)
+                db.execute(statement)
+                needcommit = True
+            else:
+                idSex = dictSex[sex]
+
+            if ida not in dictIda.keys():
+                idCounter += 5
+                idIda = idCounter
+                dictIda[ida] = idIda
+                statement = "INSERT INTO enumIdade (id, desc) VALUES ({}, '{}');".format(idIda, ida)
+                db.execute(statement)
+                needcommit = True
+            else:
+                idIda = dictIda[ida]
+
+            if esc not in dictEsc.keys():
+                idCounter += 5
+                idEsc = idCounter
+                dictEsc[esc] = idEsc
+                statement = "INSERT INTO enumEscolaridade (id, desc) VALUES ({}, '{}');".format(idEsc, esc)
+                db.execute(statement)
+                needcommit = True
+            else:
+                idEsc = dictEsc[esc]
+
+            statement = "INSERT INTO dadosDemograficos (cod_municipio, num_zona, id_sexo, id_idade, id_escolaridade ,qtd_eleitores) VALUES ({}, {}, {}, {}, {}, {});".format(mun, zon, idSex, idIda, idEsc, qtd)
+            db.execute(statement)
+
+            counter += 1
+            if counter % 100 == 0:
+                statement = 'COMMIT;'
+                db.execute(statement)
+                needcommit = False
+
+    if needcommit:
+        statement = 'COMMIT;'
+        db.execute(statement)
+    
+    print("{} Dados Demográficos inseridos!".format(counter))
 
 def Main(fileMap, fileoutput, limit):
     
@@ -35,12 +133,12 @@ def Main(fileMap, fileoutput, limit):
     outputDir = 'parsed_' + str(datetime.datetime.now())
     parsePerfilEleitorado(fileMap, outputDir, limit)
 
-    connect(fileoutput)
-    insertMunicipios()
-    insertZonas()
+    db = database.connect(fileoutput)
+    insertMunicipios(db, outputDir)
+    insertZonas(db, outputDir)
+    insertDemografia(db, outputDir)
 
-    #os.remove(fileMunicipios)
-    #os.remove(fileZonas)
+    utils.clearDir(outputDir)
 
     print("Done!")
 
@@ -132,8 +230,9 @@ if __name__ == '__main__':
             map = downloadData(downloadDict, 'downloaded')
 
             allExtracted = dict()
+            datePart = str(datetime.date.today())
             for key, value in map.items():
-                dirname = os.path.join('extracted', key, str(datetime.date.today()))
+                dirname = os.path.join('extracted', key, datePart)
                 extractedFiles = extractData(value, dirname)
                 allExtracted[key] = extractedFiles
 

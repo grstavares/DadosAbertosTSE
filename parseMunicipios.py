@@ -20,7 +20,7 @@ def extractMunicipio(line):
 
     uf = line[idxUf]
     cod = line[idxCod]
-    nom = line[idxNome]
+    nom = line[idxNome].replace("'", "`")
 
     if cod not in dictMunicipios:
         dictMunicipios[cod] = (uf, nom)

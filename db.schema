@@ -1,8 +1,32 @@
 BEGIN;
+
+CREATE TABLE "enumSexo" ("id" Integer NOT NULL PRIMARY KEY, "desc" Text NOT NULL) WITHOUT ROWID;
+CREATE TABLE "enumEscolaridade" ("id" Integer NOT NULL PRIMARY KEY, "desc" Text NOT NULL) WITHOUT ROWID;
+CREATE TABLE "enumIdade" ("id" Integer NOT NULL PRIMARY KEY, "desc" Text NOT NULL) WITHOUT ROWID;
+
 CREATE TABLE "municipios"(
 	"cod_tse" Integer NOT NULL PRIMARY KEY,
 	"nome" Text NOT NULL,
 	"uf" Text NOT NULL, CONSTRAINT "unique_cod_tse" UNIQUE ( "cod_tse" ) ) WITHOUT ROWID;
-    
+
+CREATE TABLE "zonasEleitorais" (
+	"cod_municipio" Integer NOT NULL,
+	"num_zona" Integer NOT NULL,
+	"qtd_eleitores" Real NOT NULL,
+	PRIMARY KEY("cod_municipio", "num_zona")
+	) WITHOUT ROWID;
+
+CREATE TABLE "dadosDemograficos" (
+	"cod_municipio" Integer NOT NULL,
+	"num_zona" Integer NOT NULL,
+	"id_sexo" Integer NOT NULL,
+	"id_idade" Integer NOT NULL,
+	"id_escolaridade" Integer NOT NULL,
+	"qtd_eleitores" REAL NOT NULL,
+	PRIMARY KEY ("cod_municipio", "num_zona", "id_sexo", "id_idade", "id_escolaridade")
+	) WITHOUT ROWID;
+
 CREATE INDEX "index_uf" ON "municipios"( "uf" );
+CREATE INDEX "index_municipio_fk" ON "zonasEleitorais" ("cod_municipio");
+CREATE INDEX "index_zona_fk" ON "zonasEleitorais" ("num_zona");
 COMMIT;

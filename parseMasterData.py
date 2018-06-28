@@ -3,40 +3,64 @@ import os.path
 import csv
 import argparse
 
-idxUf = 3
-idxCod = 4
-idxNome = 5
+idxMunicipio = 4
+idxZona = 6
+idxSecao = 7
+idxCodEstadoCivil = 8
+idxDesEstadoCivil = 9
+idxCodFaixaEtaria = 10
+idxDesFaixaEtaria = 11
+idxCodEscolaridade = 12
+idxDesEscolaridade = 13
+idxCodSexo = 14
+idxDesSexo = 15
+idxQtd = 16
 
 controlVerbose = False
 
-dictMunicipios = dict()
+dictEstadoCivil = dict()
+dictFaixaEtaria = dict()
+dictEscolaridade = dict()
+dictSexo = dict()
 notProcessedLines = list()
 
-def setLimit(limit):
-    global controlLimit
-    controlLimit = limit
+def extractMasterData(line):
 
-def extractMunicipio(line):
+    codEstado = line[idxCodEstadoCivil]
+    estadoCivil = line[idxDesEstadoCivil].replace("'", "`")
+    codSexo = line[idxCodSexo]
+    sexo = line[idxDesSexo].replace("'", "`")
+    codFaixa = line[idxCodFaixaEtaria]
+    faixa = line[idxDesFaixaEtaria].replace("'", "`")
+    codEsc = line[idxCodEscolaridade]
+    escolaridade = line[idxDesEscolaridade].replace("'", "`")
 
-    uf = line[idxUf]
-    cod = line[idxCod]
-    nom = line[idxNome].replace("'", "`")
-
-    if cod not in dictMunicipios:
-        dictMunicipios[cod] = (uf, nom)
+    if codEstado not in dictEstadoCivil.keys():
+        dictEstadoCivil[codEstado] = estadoCivil
+    
+    if codSexo not in dictSexo.keys():
+        dictSexo[codSexo] = sexo
+    
+    if codEsc not in dictEscolaridade.keys():
+        dictEscolaridade[codEsc] = escolaridade
+    
+    if codFaixa not in dictFaixaEtaria.keys():
+        dictFaixaEtaria[codFaixa] = faixa
 
 def processLine(line, linenumber):
     
     global controlVerbose
 
-    if type(line) is list and len(line) > idxNome:
-        extractMunicipio(line)
+    if type(line) is list and len(line) > idxQtd:
+        extractMasterData(line)
     else:
         notProcessedLines.append((linenumber, line))
         if controlVerbose:
             print("linha {} não pode ser processada!".format(linenumber))
         
 def iterateTroughReader(reader, limit):
+    
+    global controlLimit
 
     count = 0
     for row in reader:
@@ -70,6 +94,12 @@ def readInput(filename, limit):
 
 def writeOutput(filename):
     
+    outputDict = dict()
+    outputDict['EstadoCivil'] = dictEstadoCivil
+    outputDict['FaixaEtaria'] = dictFaixaEtaria
+    outputDict['Escolaridade'] = dictEscolaridade
+    outputDict['Sexo'] = dictSexo
+
     if filename != None:
 
         if os.path.exists(filename):
@@ -81,27 +111,16 @@ def writeOutput(filename):
             if controlVerbose:
                 print("Abrindo Arquivo de saída {}...".format(filename))
 
-            writer = csv.writer(file, delimiter=";")
-            for key, value in dictMunicipios.items():
-                row = list()
-                row.append(key)
-                row.append(value[0])
-                row.append(value[1])
-                writer.writerow(row)
+            file.write(str(outputDict))
+
     else:
-        writer = csv.writer(sys.stdout, delimiter=";")
-        for key, value in dictMunicipios.items():
-            row = list()
-            row.append(key)
-            row.append(value[0])
-            row.append(value[1])
-            writer.writerow(row)
+        sys.stdout.write(str(outputDict))
 
     if controlVerbose:
         print("Escrevendo no arquivo de saída...")
 
 def Main(fileinput, fileoutput, limit):
-    
+
     if not os.path.exists(fileinput):
         print(os.path.basename(__file__) + " -> Arquivo de Entrada Inexistente!")
         return
@@ -112,11 +131,11 @@ def Main(fileinput, fileoutput, limit):
     writeOutput(fileoutput)
 
     if controlVerbose:
-        print(os.path.basename(__file__) + "Procedimento encerrado, {} linhas escritas".format(len(dictMunicipios)))
-
+        print(os.path.basename(__file__) + "Procedimento encerrado, {} linhas escritas".format(len(dictSecoes)))
+   
 def parseArgs():
     
-    parser = argparse.ArgumentParser("Extrair Municípios do Perfil de Eleitores - Dados Abertos do TSE")
+    parser = argparse.ArgumentParser("Extrair Dados Mestres do Perfil de Eleitores - Dados Abertos do TSE")
     parser.add_argument("-f", "--file", help="Arquivo do Perfil de Eleitores segundo o Padrão TSE pós 2016")
     parser.add_argument("-o", "--output", help="Nome do Arquivo de Destino")
     parser.add_argument("-l", "--limit", help="Limitar número de linhas a serem processadas")
@@ -128,6 +147,7 @@ if __name__ == '__main__':
     
     args = parseArgs()
     controlVerbose = args.verbose
+    controlLimit = 0 if args.limit == None else int(args.limit)
 
     inputFile = args.file
     limit = 0 if args.limit == None else int(args.limit)
@@ -137,5 +157,3 @@ if __name__ == '__main__':
 
     else:
         print("Arquivo de Entrada Inexistente!")
-
-    

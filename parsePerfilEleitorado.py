@@ -3,6 +3,7 @@ import os.path
 
 import utils
 import dadosAbertos as dados
+from parseMasterData import Main as parseMasterData
 from parseMunicipios import Main as parseMunicipios
 from parseZonasEleitorais import Main as parseZonasEleitorais
 from parseDemografia import Main as parseDemografia
@@ -10,12 +11,14 @@ from parseDemografia import Main as parseDemografia
 def Main(filesMap, outputdir, limit):
 
     listaPerfilEleitores = filesMap[dados.kPerfilEleitores()]
+    fileMasterData = os.path.join(outputdir, "masterData.txt")
     fileMunicipios = os.path.join(outputdir, "municipios.txt")
     fileZonasEleitorais = os.path.join(outputdir, "zonasEleitorais.txt")
     fileDemografia  = os.path.join(outputdir, "DadosDemograficos.txt")
     utils.createPath(fileMunicipios)
 
     for filename in listaPerfilEleitores:
+        parseMasterData(filename, fileMasterData, limit)
         parseMunicipios(filename, fileMunicipios, limit)
         parseZonasEleitorais(filename, fileZonasEleitorais, limit)
         parseDemografia(filename, fileDemografia, limit)

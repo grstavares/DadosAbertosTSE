@@ -3,9 +3,10 @@ import os.path
 import csv
 import argparse
 
-idxMunicipio = 3
-idxZona = 4
-idxQtd = 8
+idxMunicipio = 4
+idxZona = 6
+idxSecao = 7
+idxQtd = 16
 
 controlVerbose = False
 
@@ -16,9 +17,10 @@ def extractZona(line):
 
     municipio = line[idxMunicipio]
     zona = line[idxZona]
+    secao = line[idxSecao]
     qtd = int(line[idxQtd])
 
-    key = (municipio, zona)
+    key = (municipio, zona, secao)
     if key in dictSecoes:
         dictSecoes[key] += qtd
     else:
@@ -87,6 +89,7 @@ def writeOutput(filename):
                 row = list()
                 row.append(key[0])
                 row.append(key[1])
+                row.append(key[2])
                 row.append(value)
                 writer.writerow(row)
     else:
@@ -115,7 +118,6 @@ def Main(fileinput, fileoutput, limit):
     if controlVerbose:
         print(os.path.basename(__file__) + "Procedimento encerrado, {} linhas escritas".format(len(dictSecoes)))
         
-
 def parseArgs():
     
     parser = argparse.ArgumentParser("Extrair Municípios do Perfil de Eleitores - Dados Abertos do TSE")

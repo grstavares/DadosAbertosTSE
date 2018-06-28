@@ -1,8 +1,11 @@
 def kPerfilEleitores():
     return 'perfilEleitorado'
 
+def kCandidatos():
+    return 'candidatos'
+
 def kVotacaoCandidatos():
-    return 'votacaoCandidatos'
+    return 'votacaoSecao'
     
 def kMunicipios():
     return 'municipios'

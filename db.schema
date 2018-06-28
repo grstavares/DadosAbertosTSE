@@ -2,6 +2,7 @@ BEGIN;
 
 CREATE TABLE "enumSexo" ("id" Integer NOT NULL PRIMARY KEY, "desc" Text NOT NULL) WITHOUT ROWID;
 CREATE TABLE "enumEscolaridade" ("id" Integer NOT NULL PRIMARY KEY, "desc" Text NOT NULL) WITHOUT ROWID;
+CREATE TABLE "enumEstadoCivil" ("id" Integer NOT NULL PRIMARY KEY, "desc" Text NOT NULL) WITHOUT ROWID;
 CREATE TABLE "enumIdade" ("id" Integer NOT NULL PRIMARY KEY, "desc" Text NOT NULL) WITHOUT ROWID;
 
 CREATE TABLE "municipios"(
@@ -12,19 +13,61 @@ CREATE TABLE "municipios"(
 CREATE TABLE "zonasEleitorais" (
 	"cod_municipio" Integer NOT NULL,
 	"num_zona" Integer NOT NULL,
+	"num_secao" Integer NOT NULL,
 	"qtd_eleitores" Real NOT NULL,
-	PRIMARY KEY("cod_municipio", "num_zona")
+	PRIMARY KEY("cod_municipio", "num_zona", "num_secao")
 	) WITHOUT ROWID;
 
 CREATE TABLE "dadosDemograficos" (
 	"cod_municipio" Integer NOT NULL,
 	"num_zona" Integer NOT NULL,
+	"num_secao" Integer NOT NULL,
 	"id_sexo" Integer NOT NULL,
 	"id_idade" Integer NOT NULL,
+	"id_estadoCivil" Integer NOT NULL,
 	"id_escolaridade" Integer NOT NULL,
 	"qtd_eleitores" REAL NOT NULL,
-	PRIMARY KEY ("cod_municipio", "num_zona", "id_sexo", "id_idade", "id_escolaridade")
+	PRIMARY KEY ("cod_municipio", "num_zona", "num_secao", "id_sexo", "id_idade", "id_estadoCivil", "id_escolaridade")
 	) WITHOUT ROWID;
+
+CREATE TABLE "candidatos" (
+	"num_tse" Integer NOT NULL PRIMARY KEY,
+	"num_cpf" Text NOT NULL,
+	"nome_completo" Text NOT NULL,
+	"sigla_partido" Text,
+	"data_nascimento" Text,
+	"sexo" Text,
+	"grau_instrucao" Text,
+	"estado_civil" Text,
+	"raca_informada" Text,
+	"nacionalidade" Text,
+	"email" Text
+)  WITHOUT ROWID;
+
+CREATE TABLE "eleicoes" (
+	"num_tse" Integer NOT NULL,
+	"ano" Integer NOT NULL,
+	"turno" Integer NOT NULL,
+	"num_urna" Integer NOT NULL,
+	"uf" Text,
+	"desc" Text,
+	"cargo" Text,
+	"resultado" Text,
+	PRIMARY KEY ("num_tse", "ano", "turno")
+)  WITHOUT ROWID;
+
+CREATE TABLE "votacoes" (
+	"ano" Integer NOT NULL,
+	"turno" Integer NOT NULL,
+	"cod_municipio" Integer NOT NULL,
+	"num_zona" Integer NOT NULL,
+	"num_secao" Integer NOT NULL,
+	"num_urna" Integer NOT NULL,
+	"qtd_votos" Integer NOT NULL,
+	"desc" Text,
+	"cargo" Text,
+	PRIMARY KEY ("ano", "turno", "cod_municipio", "num_zona", "num_secao", "num_urna", "cargo")
+)  WITHOUT ROWID;
 
 CREATE INDEX "index_uf" ON "municipios"( "uf" );
 CREATE INDEX "index_municipio_fk" ON "zonasEleitorais" ("cod_municipio");

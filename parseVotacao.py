@@ -3,34 +3,44 @@ import os.path
 import csv
 import argparse
 
-idxUf = 3
-idxCod = 4
-idxNome = 5
+idxAno = 2
+idxTurno = 3
+idxDesc = 4
+idxUF = 5
+idxMunicipio = 7
+idxZona = 9
+idxSecao = 10
+idxCargo = 12
+idxNum = 13
+idxQtde = 14
 
 controlVerbose = False
 
-dictMunicipios = dict()
+dictVotacao = list()
 notProcessedLines = list()
 
-def setLimit(limit):
-    global controlLimit
-    controlLimit = limit
+def extractCandidatura(line):
 
-def extractMunicipio(line):
+    ano = line[idxAno]
+    tur = line[idxTurno]
+    des = line[idxDesc].replace("'", "`")
+    uf = line[idxUF]
+    mun = line[idxMunicipio].replace("'", "`")
+    zon = line[idxZona]
+    sec = line[idxSecao]
+    car = line[idxCargo]
+    num = line[idxNum]
+    qtd = line[idxQtde]
 
-    uf = line[idxUf]
-    cod = line[idxCod]
-    nom = line[idxNome].replace("'", "`")
-
-    if cod not in dictMunicipios:
-        dictMunicipios[cod] = (uf, nom)
+    item = (ano, tur, mun, zon, sec, car, num, qtd, des, uf)
+    dictVotacao.append(item)
 
 def processLine(line, linenumber):
     
     global controlVerbose
 
-    if type(line) is list and len(line) > idxNome:
-        extractMunicipio(line)
+    if type(line) is list and len(line) > idxQtde:
+        extractCandidatura(line)
     else:
         notProcessedLines.append((linenumber, line))
         if controlVerbose:
@@ -82,20 +92,12 @@ def writeOutput(filename):
                 print("Abrindo Arquivo de saída {}...".format(filename))
 
             writer = csv.writer(file, delimiter=";")
-            for key, value in dictMunicipios.items():
-                row = list()
-                row.append(key)
-                row.append(value[0])
-                row.append(value[1])
-                writer.writerow(row)
+            for item in dictVotacao:
+                writer.writerow(item)
     else:
         writer = csv.writer(sys.stdout, delimiter=";")
-        for key, value in dictMunicipios.items():
-            row = list()
-            row.append(key)
-            row.append(value[0])
-            row.append(value[1])
-            writer.writerow(row)
+        for item in dictVotacao:
+            writer.writerow(item)
 
     if controlVerbose:
         print("Escrevendo no arquivo de saída...")
@@ -112,12 +114,12 @@ def Main(fileinput, fileoutput, limit):
     writeOutput(fileoutput)
 
     if controlVerbose:
-        print(os.path.basename(__file__) + "Procedimento encerrado, {} linhas escritas".format(len(dictMunicipios)))
+        print(os.path.basename(__file__) + "Procedimento encerrado, {} linhas escritas".format(len(dictCandidatos)))
 
 def parseArgs():
     
-    parser = argparse.ArgumentParser("Extrair Municípios do Perfil de Eleitores - Dados Abertos do TSE")
-    parser.add_argument("-f", "--file", help="Arquivo do Perfil de Eleitores segundo o Padrão TSE pós 2016")
+    parser = argparse.ArgumentParser("Extrair Candidatos do Perfil de Candidatos - Dados Abertos do TSE")
+    parser.add_argument("-f", "--file", help="Arquivo do Perfil de Candidatos segundo o Padrão TSE pós 2014")
     parser.add_argument("-o", "--output", help="Nome do Arquivo de Destino")
     parser.add_argument("-l", "--limit", help="Limitar número de linhas a serem processadas")
     parser.add_argument("-v", "--verbose", help="Show filenames to be changed before Confirmation", action="store_true")

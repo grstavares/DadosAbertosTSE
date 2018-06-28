@@ -1,36 +1,49 @@
+
 import sys
 import os.path
 import csv
 import argparse
 
-idxUf = 3
-idxCod = 4
-idxNome = 5
+idTse = 11
+idxNome = 10
+idxCpf = 13
+idxPartido = 18
+idxNascimento = 26
+idxSexo = 30
+idxInstrucao = 32
+idxEstadoCivil = 34
+idxRaca = 36
+idxNacionalidade = 38
+idxEmail = 45
 
 controlVerbose = False
 
-dictMunicipios = dict()
+dictCandidatos = dict()
 notProcessedLines = list()
 
-def setLimit(limit):
-    global controlLimit
-    controlLimit = limit
+def extractCandidato(line):
 
-def extractMunicipio(line):
-
-    uf = line[idxUf]
-    cod = line[idxCod]
+    idT = line[idTse]
+    cpf = line[idxCpf]
     nom = line[idxNome].replace("'", "`")
+    par = line[idxPartido].replace("'", "`")
+    dat = line[idxNascimento]
+    sex = line[idxSexo].replace("'", "`")
+    ins = line[idxInstrucao].replace("'", "`")
+    est = line[idxEstadoCivil].replace("'", "`")
+    rac = line[idxRaca].replace("'", "`")
+    nac = line[idxNacionalidade].replace("'", "`")
+    ema = line[idxEmail].replace("'", "`")
 
-    if cod not in dictMunicipios:
-        dictMunicipios[cod] = (uf, nom)
+    if idT not in dictCandidatos:
+        dictCandidatos[idT] = (cpf, nom, par, dat, sex, ins, est, rac, nac, ema)
 
 def processLine(line, linenumber):
     
     global controlVerbose
 
     if type(line) is list and len(line) > idxNome:
-        extractMunicipio(line)
+        extractCandidato(line)
     else:
         notProcessedLines.append((linenumber, line))
         if controlVerbose:
@@ -82,19 +95,35 @@ def writeOutput(filename):
                 print("Abrindo Arquivo de saída {}...".format(filename))
 
             writer = csv.writer(file, delimiter=";")
-            for key, value in dictMunicipios.items():
+            for key, value in dictCandidatos.items():
                 row = list()
                 row.append(key)
                 row.append(value[0])
                 row.append(value[1])
+                row.append(value[2])
+                row.append(value[3])
+                row.append(value[4])
+                row.append(value[5])
+                row.append(value[6])
+                row.append(value[7])
+                row.append(value[8])
+                row.append(value[9])
                 writer.writerow(row)
     else:
         writer = csv.writer(sys.stdout, delimiter=";")
-        for key, value in dictMunicipios.items():
+        for key, value in dictCandidatos.items():
             row = list()
             row.append(key)
             row.append(value[0])
             row.append(value[1])
+            row.append(value[2])
+            row.append(value[3])
+            row.append(value[4])
+            row.append(value[5])
+            row.append(value[6])
+            row.append(value[7])
+            row.append(value[8])
+            row.append(value[9])
             writer.writerow(row)
 
     if controlVerbose:
@@ -112,12 +141,12 @@ def Main(fileinput, fileoutput, limit):
     writeOutput(fileoutput)
 
     if controlVerbose:
-        print(os.path.basename(__file__) + "Procedimento encerrado, {} linhas escritas".format(len(dictMunicipios)))
+        print(os.path.basename(__file__) + "Procedimento encerrado, {} linhas escritas".format(len(dictCandidatos)))
 
 def parseArgs():
     
-    parser = argparse.ArgumentParser("Extrair Municípios do Perfil de Eleitores - Dados Abertos do TSE")
-    parser.add_argument("-f", "--file", help="Arquivo do Perfil de Eleitores segundo o Padrão TSE pós 2016")
+    parser = argparse.ArgumentParser("Extrair Candidatos do Perfil de Candidatos - Dados Abertos do TSE")
+    parser.add_argument("-f", "--file", help="Arquivo do Perfil de Candidatos segundo o Padrão TSE pós 2014")
     parser.add_argument("-o", "--output", help="Nome do Arquivo de Destino")
     parser.add_argument("-l", "--limit", help="Limitar número de linhas a serem processadas")
     parser.add_argument("-v", "--verbose", help="Show filenames to be changed before Confirmation", action="store_true")

@@ -1,4 +1,5 @@
 import os.path
+import ast
 import shutil
 
 def createPath(filename):
@@ -8,6 +9,12 @@ def createPath(filename):
         except OSError as exc: # Guard against race condition
             if exc.errno != errno.EEXIST:
                 raise
+
+def getMapFromFile(inputFile):
+    
+    with open(inputFile, 'r') as file:
+        content = file.read()
+        return ast.literal_eval(content)
 
 def clearDir(dirname):
 

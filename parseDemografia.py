@@ -3,12 +3,18 @@ import os.path
 import csv
 import argparse
 
-idxMunicipio = 3
-idxZona = 4
-idxSexo = 5
-idxFaixaEtaria = 6
-idxEscolaridade = 7
-idxQtd = 8
+idxMunicipio = 4
+idxZona = 6
+idxSecao = 7
+idxCodEstadoCivil = 8
+idxDesEstadoCivil = 9
+idxCodFaixaEtaria = 10
+idxDesFaixaEtaria = 11
+idxCodEscolaridade = 12
+idxDesEscolaridade = 13
+idxCodSexo = 14
+idxDesSexo = 15
+idxQtd = 16
 
 controlVerbose = False
 
@@ -19,12 +25,18 @@ def extractZona(line):
 
     municipio = line[idxMunicipio]
     zona = line[idxZona]
-    sexo = line[idxSexo].replace("'", "`")
-    faixa = line[idxFaixaEtaria].replace("'", "`")
-    escolaridade = line[idxEscolaridade].replace("'", "`")
+    secao = line[idxSecao]
+    codEstado = line[idxCodEstadoCivil]
+    estadoCivil = line[idxDesEstadoCivil].replace("'", "`")
+    codSexo = line[idxCodSexo]
+    sexo = line[idxDesSexo].replace("'", "`")
+    codFaixa = line[idxCodFaixaEtaria]
+    faixa = line[idxDesFaixaEtaria].replace("'", "`")
+    codEsc = line[idxCodEscolaridade]
+    escolaridade = line[idxDesEscolaridade].replace("'", "`")
     qtd = int(line[idxQtd])
 
-    key = (municipio, zona, sexo, faixa, escolaridade)
+    key = (municipio, zona, secao, codSexo, codEstado, codFaixa, codEsc)
     if key in dictSecoes:
         dictSecoes[key] += qtd
     else:
@@ -96,6 +108,8 @@ def writeOutput(filename):
                 row.append(key[2])
                 row.append(key[3])
                 row.append(key[4])
+                row.append(key[5])
+                row.append(key[6])
                 row.append(value)
                 writer.writerow(row)
     else:
@@ -126,8 +140,7 @@ def Main(fileinput, fileoutput, limit):
 
     if controlVerbose:
         print(os.path.basename(__file__) + "Procedimento encerrado, {} linhas escritas".format(len(dictSecoes)))
-        
-
+   
 def parseArgs():
     
     parser = argparse.ArgumentParser("Extrair Dados Demográficos do Perfil de Eleitores - Dados Abertos do TSE")

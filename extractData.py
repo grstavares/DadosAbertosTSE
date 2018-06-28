@@ -11,7 +11,7 @@ def createPath(filename):
             if exc.errno != errno.EEXIST:
                 raise
 
-def Main(inputFile, outputDir):
+def Main(inputFile, outputDir, filterParam):
     
     filename = 'extractManifest.list'
     manifestPath = os.path.join(outputDir, filename)
@@ -19,12 +19,13 @@ def Main(inputFile, outputDir):
 
     print("Extraindo", inputFile)
     extractedFiles = list()
+    forFilter = '.txt' if filterParam == None else filterParam.upper() + '.txt'
     with open(inputFile, 'rb') as f:
 
         count = 0
         file = zipfile.ZipFile(f)
         for name in file.namelist():
-            if '.txt' in name:
+            if forFilter in name:
                 count += 1
                 extractedPath = os.path.join(outputDir, name)
                 extractedFiles.append(extractedPath)
@@ -37,6 +38,7 @@ def parseArgs():
     
     parser = argparse.ArgumentParser("Extração dos Dados - Dados Abertos do TSE")
     parser.add_argument("-i", "--input", help="Arquivo de Entrada")
+    parser.add_argument("-f", "--filter", help="Filtragem por UF indicada")
     parser.add_argument("-o", "--output", help="Diretório de Destino")
     parser.add_argument("-v", "--verbose", help="Show filenames to be changed before Confirmation", action="store_true")
 
@@ -56,10 +58,11 @@ if __name__ == '__main__':
 
     inputFile = args.input
     outputDir = args.output
+    extractFilter = args.filter
     
     if inputFile != None:
         
-        result = Main(inputFile, outputDir)
+        result = Main(inputFile, outputDir, extractFilter)
 
         filename = 'extractManifest.list'
         manifestPath = os.path.join(outputDir, filename)
